@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Home Automation — Modular Design Demo</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#94a3b8; --accent:#06b6d4; --glass: rgba(255,255,255,0.04);
+      --pill: 14px; --radius: 14px;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071024 0%, #0f1724 100%);color:#e6eef6}
+    .app{max-width:420px;margin:18px auto;padding:16px}
+    header{display:flex;align-items:center;gap:12px}
+    .brand{display:flex;flex-direction:column}
+    h1{font-size:18px;margin:0}
+    p.lead{margin:2px 0 12px;color:var(--muted);font-size:13px}
+
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    .device{display:flex;align-items:center;justify-content:space-between}
+    .device .meta{display:flex;gap:10px;align-items:center}
+    .device svg{width:36px;height:36px;opacity:0.95}
+    .switch{background:var(--glass);padding:6px;border-radius:999px;display:inline-flex;align-items:center}
+    .toggle{appearance:none;border:0;background:#fff;width:42px;height:24px;border-radius:999px;position:relative;cursor:pointer}
+    .toggle:after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#07253a;transition:all .2s}
+    .toggle[aria-pressed="true"]{background:linear-gradient(90deg,var(--accent),#7c3aed)}
+    .toggle[aria-pressed="true"]:after{transform:translateX(18px)}
+
+    .controls{margin-top:10px;display:flex;gap:8px}
+    .btn{padding:8px 11px;border-radius:10px;background:var(--glass);border:0;color:var(--muted);font-size:13px}
+    .btn.primary{background:linear-gradient(90deg,var(--accent),#7c3aed);color:#041722}
+
+    .log{margin-top:12px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);font-size:12px;color:var(--muted);max-height:200px;overflow:auto}
+    pre{white-space:pre-wrap;margin:0}
+
+    .section-title{font-size:13px;color:var(--muted);margin-bottom:8px}
+    footer{margin-top:18px;font-size:12px;color:var(--muted)}
+
+    /* responsive phone-like look */
+    .phone-mock{border-radius:20px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);box-shadow: inset 0 -30px 60px rgba(0,0,0,0.25)}
+
+    code.block{display:block;background:#061226;padding:8px;border-radius:8px;margin-top:8px;color:#bfe9f0;font-size:12px}
+
+    /* small explanatory panel */
+    .explain{margin-top:12px;background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;font-size:13px;color:var(--muted)}
+
+  </style>
+</head>
+<body>
+  <div class="app phone-mock">
+    <header>
+      <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,#07314a,#06202b);display:flex;align-items:center;justify-content:center">
+        <!-- simple house icon -->
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path d="M3 10.5L12 3l9 7.5" stroke="#8ee9ff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 20V11h14v9" stroke="#bfe9f0" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand">
+        <h1>Smart Home — Modular Demo</h1>
+        <p class="lead">Control lights, fans, AC, cameras. Voice commands supported. Modular architecture shown below.</p>
+      </div>
+    </header>
+
+    <main style="margin-top:12px">
+      <!-- Modules grid -->
+      <div class="grid">
+        <div class="card" id="lighting-card">
+          <div class="section-title">Lighting Module (High cohesion)</div>
+          <div class="device">
+            <div class="meta">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M9 18h6" stroke="#ffd54f" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 3v3" stroke="#ffd54f" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="3" stroke="#ffd54f" stroke-width="1.5"/>
+              </svg>
+              <div>
+                <div style="font-weight:600">Living Room Light</div>
+                <div style="font-size:12px;color:var(--muted)">Hue: Warm | Brightness: 80%</div>
+              </div>
+            </div>
+            <div class="switch">
+              <button class="toggle" id="light-toggle" aria-pressed="false" aria-label="toggle light"></button>
+            </div>
+          </div>
+          <div class="controls">
+            <button class="btn" id="light-decrease">- Bright</button>
+            <button class="btn" id="light-increase">+ Bright</button>
+            <button class="btn" id="light-scene">Scene: Relax</button>
+          </div>
+        </div>
+
+        <div class="card" id="cooling-card">
+          <div class="section-title">Cooling Module (Fans & AC)</div>
+          <div class="device">
+            <div class="meta">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M12 3v18" stroke="#7dd3fc" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="6" stroke="#7dd3fc" stroke-width="1.2"/>
+              </svg>
+              <div>
+                <div style="font-weight:600">Bedroom AC</div>
+                <div style="font-size:12px;color:var(--muted)">Mode: Cool | 24°C</div>
+              </div>
+            </div>
+            <div>
+              <button class="btn primary" id="ac-toggle">Toggle Power</button>
+            </div>
+          </div>
+          <div class="controls">
+            <button class="btn" id="ac-down">- Temp</button>
+            <button class="btn" id="ac-up">+ Temp</button>
+            <button class="btn" id="ac-fan">Fan: Auto</button>
+          </div>
+        </div>
+
+        <div class="card" id="security-card">
+          <div class="section-title">Security Module (Cameras & Alerts)</div>
+          <div class="device">
+            <div class="meta">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M2 9l10-5 10 5v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" stroke="#94a3b8" stroke-width="1.2"/>
+              </svg>
+              <div>
+                <div style="font-weight:600">Front Door Cam</div>
+                <div style="font-size:12px;color:var(--muted)">Status: Armed</div>
+              </div>
+            </div>
+            <div>
+              <button class="btn" id="cam-snapshot">Snapshot</button>
+            </div>
+          </div>
+          <div class="controls">
+            <button class="btn" id="cam-arm">Arm</button>
+            <button class="btn" id="cam-disarm">Disarm</button>
+            <button class="btn" id="cam-live">Live View</button>
+          </div>
+        </div>
+
+        <div class="card" id="integration-card">
+          <div class="section-title">Integration & Voice</div>
+          <div style="font-size:13px;color:var(--muted);">Voice: <span id="voice-status">inactive</span></div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn primary" id="voice-start">Start Voice</button>
+            <button class="btn" id="voice-stop">Stop</button>
+          </div>
+          <div style="margin-top:8px;color:var(--muted);font-size:12px">Try commands: "turn on living room light", "set AC to 22 degrees", "arm security"</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="section-title">Event Log (Event Bus & Loose Coupling)</div>
+        <div class="log" id="event-log"><pre id="log-pre">System initialized. Modules loaded: LightingModule, CoolingModule, SecurityModule.</pre></div>
+
+        <div class="explain">
+          <strong>How this demo maps to assignment requirements:</strong>
+          <ul>
+            <li><strong>High cohesion:</strong> each module (LightingModule, CoolingModule, SecurityModule) handles only its device type and exposes a concise API.</li>
+            <li><strong>Loose coupling:</strong> modules communicate via a centralized <em>EventBus</em> (a well-defined interface) rather than calling each other directly — new modules subscribe to events they care about.</li>
+            <li><strong>Scalability & Flexibility:</strong> adding a new device (e.g., SmartFridgeModule or DoorLockModule) requires creating a new module class that registers with the EventBus and implements the device API — no changes to existing module code.</li>
+          </ul>
+          <div style="margin-top:8px"><strong>How to add a module (summary):</strong>
+            <code class="block">class SmartFridgeModule extends DeviceModule { constructor(bus){super(bus,'fridge');} /* implement handlers and register commands */ }</code>
+          </div>
+        </div>
+
+      </div>
+
+      <footer>
+        <div style="font-weight:600">Design justification summary</div>
+        <div style="color:var(--muted);margin-top:6px">This single-file demo is a visual + interactive representation. The implementation below contains an EventBus, DeviceModule base class, and three concrete modules. Comments in the script explain extension points and the voice command mapping.</div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    /******************************************************************
+     * Minimal in-page implementation of a modular architecture
+     * - EventBus for loose coupling
+     * - DeviceModule base class (high cohesion for each derived module)
+     * - Example LightingModule, CoolingModule, SecurityModule
+     * - Small voice-command mapping using Web Speech API (if available)
+     *
+     * NOTE: This is a demo — real systems should separate concerns into
+     * files, use secure authentication, and robust APIs.
+     ******************************************************************/
+
+    // --- EventBus (well-defined interface for inter-module communication)
+    class EventBus {
+      constructor(){ this._listeners = new Map(); }
+      on(event,cb){ if(!this._listeners.has(event)) this._listeners.set(event,[]); this._listeners.get(event).push(cb); }
+      off(event,cb){ if(!this._listeners.has(event)) return; this._listeners.set(event,this._listeners.get(event).filter(f=>f!==cb)); }
+      emit(event,data){ (this._listeners.get(event)||[]).forEach(cb=>{try{cb(data)}catch(e){console.error(e)}}); }
+    }
+
+    // --- Base device module: keeps each module cohesive and small
+    class DeviceModule {
+      constructor(bus, name){ this.bus = bus; this.name = name; this.log = (msg)=>appendLog([${this.name}] ${msg}); }
+      // each module should implement handleCommand(command) and register with bus
+      handleCommand(cmd){ this.log('received command (base) '+JSON.stringify(cmd)); }
+    }
+
+    // --- Lighting module: handles only lights and related scenes
+    class LightingModule extends DeviceModule{
+      constructor(bus){ super(bus,'LightingModule'); this.state = {on:false,brightness:80};
+        this.bus.on('command:light', cmd=>this.handleCommand(cmd));
+      }
+      handleCommand(cmd){
+        if(cmd.action==='toggle') { this.state.on = !this.state.on; this.log('power -> '+this.state.on); this.bus.emit('event:light:state',this.state);
+        } else if(cmd.action==='set-bright'){ this.state.brightness = cmd.value; this.log('brightness -> '+this.state.brightness); this.bus.emit('event:light:state',this.state); }
+        else if(cmd.action==='scene'){ this.log('applied scene: '+cmd.value); }
+      }
+    }
+
+    // --- Cooling module: handles fan/ac only
+    class CoolingModule extends DeviceModule{
+      constructor(bus){ super(bus,'CoolingModule'); this.state={power:false,temp:24}; this.bus.on('command:ac',cmd=>this.handleCommand(cmd)); }
+      handleCommand(cmd){ if(cmd.action==='toggle'){ this.state.power=!this.state.power; this.log('power -> '+this.state.power); }
+        else if(cmd.action==='set-temp'){ this.state.temp = cmd.value; this.log('temp -> '+this.state.temp); }
+      }
+    }
+
+    // --- Security module: cameras, armed state, snapshots
+    class SecurityModule extends DeviceModule{
+      constructor(bus){ super(bus,'SecurityModule'); this.state={armed:true}; this.bus.on('command:security',cmd=>this.handleCommand(cmd)); }
+      handleCommand(cmd){ if(cmd.action==='arm'){ this.state.armed = true; this.log('armed'); }
+        else if(cmd.action==='disarm'){ this.state.armed=false; this.log('disarmed'); }
+        else if(cmd.action==='snapshot'){ this.log('snapshot taken (simulated)'); }
+      }
+    }
+
+    // Utility: append to UI log
+    function appendLog(str){ const p = document.getElementById('log-pre'); p.textContent += '\n' + (new Date()).toLocaleTimeString() + ' - ' + str; const box=document.getElementById('event-log'); box.scrollTop = box.scrollHeight; }
+
+    // Boot modules
+    const bus = new EventBus();
+    const lighting = new LightingModule(bus);
+    const cooling = new CoolingModule(bus);
+    const security = new SecurityModule(bus);
+
+    // Wire UI controls to module commands (UI uses EventBus; modules don't call UI directly)
+    document.getElementById('light-toggle').addEventListener('click', (e)=>{
+      const btn=e.currentTarget; const pressed = btn.getAttribute('aria-pressed') === 'true'; btn.setAttribute('aria-pressed', String(!pressed));
+      bus.emit('command:light',{action:'toggle'});
+    });
+    document.getElementById('light-increase').addEventListener('click', ()=> bus.emit('command:light',{action:'set-bright',value:Math.min(100, lighting.state.brightness+10)}));
+    document.getElementById('light-decrease').addEventListener('click', ()=> bus.emit('command:light',{action:'set-bright',value:Math.max(0, lighting.state.brightness-10)}));
+    document.getElementById('light-scene').addEventListener('click', ()=> bus.emit('command:light',{action:'scene',value:'Relax'}));
+
+    document.getElementById('ac-toggle').addEventListener('click', ()=> bus.emit('command:ac',{action:'toggle'}));
+    document.getElementById('ac-up').addEventListener('click', ()=> bus.emit('command:ac',{action:'set-temp',value:cooling.state.temp+1}));
+    document.getElementById('ac-down').addEventListener('click', ()=> bus.emit('command:ac',{action:'set-temp',value:cooling.state.temp-1}));
+
+    document.getElementById('cam-snapshot').addEventListener('click', ()=> bus.emit('command:security',{action:'snapshot'}));
+    document.getElementById('cam-arm').addEventListener('click', ()=> bus.emit('command:security',{action:'arm'}));
+    document.getElementById('cam-disarm').addEventListener('click', ()=> bus.emit('command:security',{action:'disarm'}));
+    document.getElementById('cam-live').addEventListener('click', ()=> appendLog('[UI] Opening live view (simulated)'));
+
+    // Subscribe UI elements to module events to reflect state changes without direct coupling
+    bus.on('event:light:state', (s)=> appendLog('Light state changed -> ' + JSON.stringify(s)));
+
+    // --- Voice command mini-layer (maps natural commands to module events)
+    let recognition = null;
+    let recognizing=false;
+    function supportsSpeech(){ return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window; }
+    if(supportsSpeech()){
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR(); recognition.lang='en-US'; recognition.interimResults=false; recognition.onresult = (e)=>{
+        const text = Array.from(e.results).map(r=>r[0].transcript).join(' ');
+        appendLog('[Voice] Heard: ' + text);
+        // simple parser / command mapper
+        parseVoiceCommand(text.toLowerCase());
+      };
+      recognition.onend = ()=>{ recognizing=false; document.getElementById('voice-status').textContent='inactive'; };
+    }
+
+    document.getElementById('voice-start').addEventListener('click', ()=>{
+      if(!recognition){ appendLog('[Voice] Not supported in this browser.'); return; }
+      if(!recognizing){ recognition.start(); recognizing=true; document.getElementById('voice-status').textContent='listening'; appendLog('[Voice] started'); }
+    });
+    document.getElementById('voice-stop').addEventListener('click', ()=>{ if(recognition){ recognition.stop(); recognizing=false; document.getElementById('voice-status').textContent='inactive'; appendLog('[Voice] stopped'); }});
+
+    function parseVoiceCommand(s){
+      // very small rule-based mapping for demo purposes
+      if(s.includes('turn on') && s.includes('light')){ bus.emit('command:light',{action:'toggle'}); return; }
+      if(s.includes('turn off') && s.includes('light')){ bus.emit('command:light',{action:'toggle'}); return; }
+      let m = s.match(/set (?:ac|air) to (\d{2})/);
+      if(m){ bus.emit('command:ac',{action:'set-temp',value:parseInt(m[1],10)}); return; }
+      if(s.includes('arm security')||s.includes('arm the security')||s.includes('arm system')){ bus.emit('command:security',{action:'arm'}); return; }
+      if(s.includes('disarm')){ bus.emit('command:security',{action:'disarm'}); return; }
+      appendLog('[Voice] No matching command for: ' + s);
+    }
+
+    // --- Example: how to add a new module without modifying others
+    /*
+      1. Create a new class that extends DeviceModule, e.g. SmartFridgeModule.
+      2. In constructor, register handlers: this.bus.on('command:fridge', cmd=>this.handleCommand(cmd));
+      3. Emit events when state changes: this.bus.emit('event:fridge:state', this.state);
+      4. UI or other modules can emit 'command:fridge' without knowing module internals.
+    */
+
+    // Demonstrate dynamic addition
+    function addSmartFridge(){
+      class SmartFridgeModule extends DeviceModule{
+        constructor(bus){ super(bus,'FridgeModule'); this.state={temp:4,door:'closed'}; this.bus.on('command:fridge',cmd=>this.handleCommand(cmd)); }
+        handleCommand(cmd){ if(cmd.action==='set-temp'){ this.state.temp=cmd.value; this.log('fridge temp -> '+this.state.temp); this.bus.emit('event:fridge:state',this.state);} }
+      }
+      const fridge = new (SmartFridgeModule)(bus);
+      appendLog('[System] Fridge module added dynamically.');
+    }
+    // Uncomment to simulate adding a module at runtime
+    // addSmartFridge();
+
+    // initial log
+    appendLog('All modules registered. EventBus ready.');
+
+  </script>
+</body>
+</html>
